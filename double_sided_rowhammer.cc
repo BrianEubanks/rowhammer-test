@@ -103,14 +103,22 @@ uint64_t HammerAddressesStandard(
   volatile uint64_t* second_pointer =
       reinterpret_cast<uint64_t*>(second_range.first);
   uint64_t sum = 0;
+  
 
   while (number_of_reads-- > 0) {
     sum += first_pointer[0];
     sum += second_pointer[0];
     asm volatile(
-        "clflush (%0);\n\t"
-        "clflush (%1);\n\t"
-        : : "r" (first_pointer), "r" (second_pointer) : "memory");
+        //"clflush (%0);\n\t"
+        //"clflush (%1);\n\t"
+        //: : "r" (first_pointer), "r" (second_pointer) : "memory");
+      //"str %2, [%0]\n\t"
+      //"str %2, [%1]\n\t"
+      "dc cvac, %0\n\t"
+      "dc cvac, %1\n\t"
+      //"dsb 0xb"
+      ::"r" (first_pointer), "r" (second_pointer)
+    );
   }
   return sum;
 }

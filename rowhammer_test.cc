@@ -62,6 +62,7 @@ class Timer {
 
 static void toggle(int iterations, int addr_count) {
   Timer timer;
+  int temp = 0;
   for (int j = 0; j < iterations; j++) {
     uint32_t *addrs[addr_count];
     for (int a = 0; a < addr_count; a++)
@@ -72,7 +73,15 @@ static void toggle(int iterations, int addr_count) {
       for (int a = 0; a < addr_count; a++)
         sum += *addrs[a] + 1;
       for (int a = 0; a < addr_count; a++)
-        asm volatile("clflush (%0)" : : "r" (addrs[a]) : "memory");
+        //asm volatile("clflush (%0)" : : "r" (addrs[a]) : "memory");
+        asm volatile (
+          //"ldr %2, [%0]\n\t"
+          //"ldr %2, [%1]\n\t"
+          "dc cvac, %0\n\t"
+          "dc cvac, %1\n\t"
+          //"dsb 0xb"
+          ::"r" (addrs[a]), "r" (addrs[a]), "w" (temp)
+        );
     }
 
     // Sanity check.  We don't expect this to fail, because reading
